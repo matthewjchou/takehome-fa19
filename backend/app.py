@@ -3,6 +3,8 @@ from typing import Tuple
 from flask import Flask, jsonify, request, Response
 import mockdb.mockdb_interface as db
 
+import sys
+
 app = Flask(__name__)
 
 
@@ -53,17 +55,79 @@ def mirror(name):
 
 @app.route("/contacts", methods=['GET'])
 def get_all_contacts():
-    return create_response({"contacts": db.get('contacts')})
+    query = request.args.get('hobby')
+    if query is None:
+        return create_response({"contacts": db.get('contacts')})
+    else:
+        if db.getByHobby('contacts', query) is None:
+            return create_response(status=404, message="No contact with that hobby exists")
 
-@app.route("/shows/<id>", methods=['DELETE'])
-def delete_show(id):
+        return create_response({"contacts": db.getByHobby('contacts', query)})
+
+@app.route("/contacts", methods=['POST'])
+def create_contact():
+    data = request.json
+    num_entries = len(data)
+
+    if num_entries != 3:
+        return create_response(status=422, message="Could not create contact, not enough data provided, minimum is: name, nickname, and hobby")
+    
+    name = data.get("name")
+    if name is None:
+        return create_response(status=422, message='Could not create contact, no "name" info')
+
+    nickname = data.get("nickname")
+    if nickname is None:
+        return create_response(status=422, message='Could not create contact, no "nickname" info')
+
+    hobby = data.get("hobby")
+    if hobby is None:
+        return create_response(status=422, message='Could not create contact, no "hobby" info')
+
+    db.create('contacts', data)
+
+    # Not sure if you can pass an empty json? Got a 404 in testing
+    # if name is None or nickname is None or hobby is None:
+    #     return create_response(status=422, message="Could not create contact, check the data being passed, something might be empty")
+
+    #TODO figure out how to return the new contact
+    return create_response(data=data, status=201)
+
+@app.route("/contacts/<id>", methods=['PUT'])
+def update_contact(id):
     if db.getById('contacts', int(id)) is None:
-        return create_response(status=404, message="No contact with this id exists")
+        return create_response(status=404, message='No contact with id "{0}" exists'.format(id))
+
+    data = request.json 
+
+    name = data.get("name")
+    if name is None:
+        return create_response(status=422, message='Could not create contact, no "name" info')
+
+    hobby = data.get("hobby")
+    if hobby is None:
+        return create_response(status=422, message='Could not create contact, no "hobby" info')
+
+    db.updateById('contacts', int(id), {"name": name, "hobby": hobby})
+
+    return create_response({"contacts": db.getById('contacts', int(id))})
+
+
+@app.route("/contacts/<id>", methods=['DELETE'])
+def delete_contact(id):
+    if db.getById('contacts', int(id)) is None:
+        return create_response(status=404, message='No contact with id "{0}" exists'.format(id))
     db.deleteById('contacts', int(id))
     return create_response(message="Contact deleted")
 
-
 # TODO: Implement the rest of the API here!
+
+@app.route("/contacts/<id>", methods=['GET'])
+def get_contact_by_id(id):
+    if db.getById('contacts', int(id)) is None:
+        return create_response(status=404, message='No contact with id "{0}" exists'.format(id))
+    return create_response({"contacts": db.getById('contacts', int(id))})
+
 
 """
 ~~~~~~~~~~~~ END API ~~~~~~~~~~~~
