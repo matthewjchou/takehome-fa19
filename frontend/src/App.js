@@ -38,23 +38,21 @@ class App extends Component {
 
   handleSubmit = () => {
     this.setState(prevState => {
+      //Create a deep copy of current list, append new contact, return list
       var newContacts = JSON.parse(JSON.stringify(prevState.contacts))
+
       newContacts.push({id: prevState.contacts.length + 1, name: this.state.name,
         nickname: this.state.nickname, hobby: this.state.hobby})
       
       return {contacts: newContacts}
     })
-    this.increaseCounter()
     this.resetFormState()
     this._child.current.handleIncrement()
-
-  }
-
-  increaseCounter = () => {
-    this.setState({increaseCount: true})
   }
 
   render() {
+    var formsFilled = !(this.state.name.length && this.state.nickname.length && this.state.hobby.length)
+
     return ( 
       <div className="App">
         <Instructions complete={true} />
@@ -64,7 +62,7 @@ class App extends Component {
         ))}
 
         <form>
-          <label onSubmit={this.handleSubmit}>
+          <label>
             Name:
             <input type="text" value={this.state.name} onChange={this.handleChangeName} />
             <br></br>
@@ -75,7 +73,7 @@ class App extends Component {
             <input type="text" value={this.state.hobby} onChange={this.handleChangeHobby} />
           </label>
           <p>
-            <input type="button" value="Create Contact" onClick={this.handleSubmit} />
+            <input type="button" value="Create Contact" onClick={this.handleSubmit} disabled={formsFilled} />
           </p>
         </form>
       </div>

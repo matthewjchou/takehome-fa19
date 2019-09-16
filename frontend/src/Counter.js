@@ -23,7 +23,6 @@ class Counter extends Component {
     const {count} = this.state  
     
     return (
-      
       <div className="Counter">
         <p>
           The current count is: {count}  
@@ -31,7 +30,6 @@ class Counter extends Component {
         <button onClick={this.handleIncrement}>Increment</button>
         <button onClick={this.handleDecrement}>Decrement</button>
       </div>
-
     )
   }
 }

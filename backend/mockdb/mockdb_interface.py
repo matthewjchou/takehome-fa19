@@ -11,6 +11,7 @@ def get(type):
 def getById(type, id):
     return next((i for i in get(type) if i["id"] == id), None)
 
+
 def getByHobby(type, hobby):
     return next((i for i in get(type) if i["hobby"] == hobby), None)
 
